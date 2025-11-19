@@ -76,8 +76,8 @@ exports.updateTask = async (req, res) => {
 
     const result = await pool.query(
       `UPDATE tasks SET title = COALESCE($1, title), description = COALESCE($2, description),
-        ue_date = COALESCE($3, due_date), status = COALESCE($4, status)
-        WHEdRE id = $5 RETURNING *`,
+        due_date = COALESCE($3, due_date), status = COALESCE($4, status)
+        WHERE id = $5 RETURNING *`,
       [title, description, due_date, status, id]
     );
 
