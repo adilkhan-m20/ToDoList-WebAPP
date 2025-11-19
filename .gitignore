@@ -1,0 +1,75 @@
+# Environment variables
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+
+# Node.js dependencies - Backend
+backend/node_modules/
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+
+# Node.js dependencies - Frontend  
+frontend/node_modules/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Runtime data
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output
+
+# Dependency directories
+*/node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+.env.production
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Build directories
+backend/dist/
+frontend/dist/
+frontend/build/
+backend/build/
+
+# Cache directories
+.cache/
+.parcel-cache/
