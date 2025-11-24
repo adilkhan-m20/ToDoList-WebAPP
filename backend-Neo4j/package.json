@@ -1,0 +1,30 @@
+{
+  "name": "neo4j-todo-backend",
+  "version": "1.0.0",
+  "description": "Todo App Backend with Neo4j, JWT Authentication, and CRUD operations",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "neo4j",
+    "todo",
+    "backend",
+    "express",
+    "jwt"
+  ],
+  "author": "Adil Khan",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "neo4j-driver": "^5.20.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
