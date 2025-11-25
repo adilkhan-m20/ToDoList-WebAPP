@@ -1,6 +1,11 @@
 "use client";
 import TodoCard from "./todo-card";
 
+interface Category {
+  id: number;
+  name: string;
+}
+
 interface Task {
   id: number;
   title: string;
@@ -16,6 +21,8 @@ interface TodoListProps {
   onDelete: (id: number) => void;
   onUpdateStatus: (id: number, status: string) => void;
   token: string;
+  onTaskUpdate: () => void;
+  categories: Category[];
 }
 
 export default function TodoList({
@@ -23,6 +30,8 @@ export default function TodoList({
   onDelete,
   onUpdateStatus,
   token,
+  onTaskUpdate,
+  categories,
 }: TodoListProps) {
   if (tasks.length === 0) {
     return (
@@ -44,6 +53,8 @@ export default function TodoList({
           onDelete={onDelete}
           onUpdateStatus={onUpdateStatus}
           token={token}
+          onTaskUpdate={onTaskUpdate}
+          categories={categories}
         />
       ))}
     </div>

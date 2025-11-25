@@ -13,12 +13,21 @@ interface Category {
 
 interface CategoryManagerProps {
   token: string;
+  selectedCategory: number | null;
+  onSelectCategory: (categoryId: number | null) => void;
+  categories: Category[];
+  onCategoriesChange: (categories: Category[]) => void;
 }
 
 const API_URL = "http://localhost:5000";
 
-export default function CategoryManager({ token }: CategoryManagerProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
+export default function CategoryManager({
+  token,
+  selectedCategory,
+  onSelectCategory,
+  categories,
+  onCategoriesChange,
+}: CategoryManagerProps) {
   const [categoryName, setCategoryName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,7 +39,7 @@ export default function CategoryManager({ token }: CategoryManagerProps) {
     try {
       const response = await fetch(`${API_URL}/categories`);
       const data = await response.json();
-      setCategories(data.categories || []);
+      onCategoriesChange(data.categories || []);
     } catch (err) {
       console.error("Failed to load categories");
     }
@@ -82,13 +91,28 @@ export default function CategoryManager({ token }: CategoryManagerProps) {
       </form>
 
       <div className="space-y-2">
+        <button
+          onClick={() => onSelectCategory(null)}
+          className={`w-full p-2 rounded text-xs font-semibold text-left transition-colors ${
+            selectedCategory === null
+              ? "bg-secondary/20 border border-secondary text-secondary"
+              : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20"
+          }`}
+        >
+          ALL TASKS
+        </button>
         {categories.map((cat) => (
-          <div
+          <button
             key={cat.id}
-            className="p-2 bg-primary/10 border border-primary/30 rounded text-xs text-primary font-semibold"
+            onClick={() => onSelectCategory(cat.id)}
+            className={`w-full p-2 rounded text-xs font-semibold text-left transition-colors ${
+              selectedCategory === cat.id
+                ? "bg-secondary/20 border border-secondary text-secondary"
+                : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20"
+            }`}
           >
             {cat.name}
-          </div>
+          </button>
         ))}
       </div>
 

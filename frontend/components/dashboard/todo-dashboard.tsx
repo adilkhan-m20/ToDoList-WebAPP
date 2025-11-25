@@ -8,6 +8,11 @@ import { Input } from "@/components/ui/input";
 import TodoList from "./todo-list";
 import CategoryManager from "./category-manager";
 
+interface Category {
+  id: number;
+  name: string;
+}
+
 interface Task {
   id: number;
   title: string;
@@ -35,6 +40,9 @@ export default function TodoDashboard({ token, onLogout }: TodoDashboardProps) {
     "all" | "todo" | "in_progress" | "done"
   >("all");
   const [showNewTaskForm, setShowNewTaskForm] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
 
   useEffect(() => {
     fetchTasks();
@@ -73,9 +81,19 @@ export default function TodoDashboard({ token, onLogout }: TodoDashboardProps) {
 
       const data = await response.json();
       if (response.ok) {
-        setTasks([data.task, ...tasks]);
+        const newTask = data.task;
+        for (const catId of selectedCategoryIds) {
+          await fetch(`${API_URL}/tasks/${newTask.id}/categories/${catId}`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+
+        // Refetch tasks to get updated category assignments
+        await fetchTasks();
         setTitle("");
         setDescription("");
+        setSelectedCategoryIds([]);
         setShowNewTaskForm(false);
       } else {
         setError(data.error || "Failed to add task");
@@ -116,8 +134,21 @@ export default function TodoDashboard({ token, onLogout }: TodoDashboardProps) {
     }
   };
 
-  const filteredTasks =
-    activeTab === "all" ? tasks : tasks.filter((t) => t.status === activeTab);
+  const toggleCategorySelection = (catId: number) => {
+    setSelectedCategoryIds((prev) =>
+      prev.includes(catId)
+        ? prev.filter((id) => id !== catId)
+        : [...prev, catId]
+    );
+  };
+
+  const filteredTasks = tasks.filter((t) => {
+    const statusMatch = activeTab === "all" || t.status === activeTab;
+    const categoryMatch =
+      selectedCategory === null ||
+      (t.categories && t.categories.some((c) => c.id === selectedCategory));
+    return statusMatch && categoryMatch;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-[#1a0033]">
@@ -139,7 +170,13 @@ export default function TodoDashboard({ token, onLogout }: TodoDashboardProps) {
       <div className="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-4 gap-6 py-8">
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-4">
-          <CategoryManager token={token} />
+          <CategoryManager
+            token={token}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+            categories={categories}
+            onCategoriesChange={setCategories}
+          />
         </div>
 
         {/* Main Content */}
@@ -187,6 +224,30 @@ export default function TodoDashboard({ token, onLogout }: TodoDashboardProps) {
                   />
                 </div>
 
+                {categories.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-semibold text-secondary mb-2">
+                      CATEGORIES (OPTIONAL)
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {categories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => toggleCategorySelection(cat.id)}
+                          className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
+                            selectedCategoryIds.includes(cat.id)
+                              ? "bg-accent text-accent-foreground"
+                              : "bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20"
+                          }`}
+                        >
+                          {cat.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <Button
                     type="submit"
@@ -201,6 +262,7 @@ export default function TodoDashboard({ token, onLogout }: TodoDashboardProps) {
                       setShowNewTaskForm(false);
                       setTitle("");
                       setDescription("");
+                      setSelectedCategoryIds([]);
                     }}
                     className="flex-1 bg-muted hover:bg-muted/80 text-muted-foreground font-semibold py-2 rounded"
                   >
@@ -245,6 +307,8 @@ export default function TodoDashboard({ token, onLogout }: TodoDashboardProps) {
             onDelete={handleDeleteTask}
             onUpdateStatus={handleUpdateStatus}
             token={token}
+            onTaskUpdate={fetchTasks}
+            categories={categories}
           />
         </div>
       </div>

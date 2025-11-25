@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 
+interface Category {
+  id: number;
+  name: string;
+}
+
 interface Task {
   id: number;
   title: string;
@@ -17,6 +22,8 @@ interface TodoCardProps {
   onDelete: (id: number) => void;
   onUpdateStatus: (id: number, status: string) => void;
   token: string;
+  onTaskUpdate: () => void;
+  categories: Category[];
 }
 
 const statusColors = {
@@ -31,15 +38,20 @@ const statusLabels = {
   done: "COMPLETED",
 };
 
+const API_URL = "http://localhost:5000";
+
 export default function TodoCard({
   task,
   onDelete,
   onUpdateStatus,
   token,
+  onTaskUpdate,
+  categories,
 }: TodoCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [saving, setSaving] = useState(false);
+  const [showCategorySelector, setShowCategorySelector] = useState(false);
 
   const handleSave = async () => {
     if (editTitle.trim() === task.title) {
@@ -49,7 +61,7 @@ export default function TodoCard({
 
     setSaving(true);
     try {
-      const response = await fetch(`http://localhost:5000/tasks/${task.id}`, {
+      const response = await fetch(`${API_URL}/tasks/${task.id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -59,6 +71,7 @@ export default function TodoCard({
       });
       if (response.ok) {
         setIsEditing(false);
+        onTaskUpdate();
       }
     } catch (err) {
       console.error("Failed to save");
@@ -67,10 +80,37 @@ export default function TodoCard({
     }
   };
 
+  const handleAssignCategory = async (categoryId: number) => {
+    try {
+      await fetch(`${API_URL}/tasks/${task.id}/categories/${categoryId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      onTaskUpdate();
+    } catch (err) {
+      console.error("Failed to assign category");
+    }
+  };
+
+  const handleRemoveCategory = async (categoryId: number) => {
+    try {
+      await fetch(`${API_URL}/tasks/${task.id}/categories/${categoryId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      onTaskUpdate();
+    } catch (err) {
+      console.error("Failed to remove category");
+    }
+  };
+
+  const taskCategoryIds = task.categories?.map((c) => c.id) || [];
+  const unassignedCategories = categories.filter(
+    (c) => !taskCategoryIds.includes(c.id)
+  );
+
   const borderClass =
     statusColors[task.status as keyof typeof statusColors] || statusColors.todo;
-  const statusLabel =
-    statusLabels[task.status as keyof typeof statusLabels] || "TODO";
 
   return (
     <div
@@ -105,18 +145,59 @@ export default function TodoCard({
             </p>
           )}
 
-          {task.categories && task.categories.length > 0 && (
-            <div className="flex gap-2 mt-2 flex-wrap">
-              {task.categories.map((cat) => (
+          <div className="flex gap-2 mt-2 flex-wrap items-center">
+            {task.categories &&
+              task.categories.length > 0 &&
+              task.categories.map((cat) => (
                 <span
                   key={cat.id}
-                  className="inline-block px-2 py-1 bg-accent/20 text-accent text-xs rounded font-semibold"
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-accent/20 text-accent text-xs rounded font-semibold group"
                 >
                   {cat.name}
+                  <button
+                    onClick={() => handleRemoveCategory(cat.id)}
+                    className="ml-1 text-accent/60 hover:text-destructive transition-colors"
+                    title="Remove category"
+                  >
+                    ×
+                  </button>
                 </span>
               ))}
+
+            <div className="relative">
+              <button
+                onClick={() => setShowCategorySelector(!showCategorySelector)}
+                className="px-2 py-1 bg-primary/10 border border-primary/30 text-primary text-xs rounded font-semibold hover:bg-primary/20 transition-colors"
+              >
+                + TAG
+              </button>
+
+              {showCategorySelector && unassignedCategories.length > 0 && (
+                <div className="absolute top-full left-0 mt-1 z-10 bg-card border border-primary/30 rounded shadow-lg min-w-[120px]">
+                  {unassignedCategories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        handleAssignCategory(cat.id);
+                        setShowCategorySelector(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 text-xs text-foreground hover:bg-primary/20 transition-colors"
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {showCategorySelector && unassignedCategories.length === 0 && (
+                <div className="absolute top-full left-0 mt-1 z-10 bg-card border border-primary/30 rounded shadow-lg p-2">
+                  <p className="text-xs text-muted-foreground">
+                    No more categories
+                  </p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {task.due_date && (
             <p className="text-muted-foreground text-xs mt-2">
