@@ -15,7 +15,7 @@ exports.register = async (req, res) => {
       `MERGE (u:User {email: $email})
             ON CREATE SET u.id = $id, u.name = $name, u.password_hash = $password_hash, u.created_at = datetime()
             RETURN u`,
-      { id, name, email, passwordHash }
+      { id, name, email, password_hash: passwordHash }
     );
 
     const user = result.records[0].get("u").properties;
