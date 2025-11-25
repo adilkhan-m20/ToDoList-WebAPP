@@ -10,7 +10,7 @@ async function ensureConstraints() {
       `CREATE CONSTRAINT IF NOT EXISTS FOR (u:User) REQUIRE u.id IS UNIQUE`
     );
     await session.run(
-      `CREATE CONSTRAINT IS NOT EXISTS FOR (t:Task) REQUIRE t.id IS UNIQUE`
+      `CREATE CONSTRAINT IF NOT EXISTS FOR (t:Task) REQUIRE t.id IS UNIQUE`
     );
     await session.run(
       `CREATE CONSTRAINT IF NOT EXISTS FOR (c:Category) REQUIRE c.id IS UNIQUE`

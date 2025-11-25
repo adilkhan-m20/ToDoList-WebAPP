@@ -15,7 +15,7 @@ exports.register = async (req, res) => {
       `MERGE (u:User {email: $email})
             ON CREATE SET u.id = $id, u.name = $name, u.password_hash = $password_hash, u.created_at = datetime()
             RETURN u`,
-      { id, name, email, password_hash }
+      { id, name, email, passwordHash }
     );
 
     const user = result.records[0].get("u").properties;
@@ -42,7 +42,7 @@ exports.login = async (req, res) => {
 
   try {
     const result = await session.run(
-      `MATCH {u:User {email: $email}} RETURN u LIMIT 1`,
+      `MATCH (u:User {email: $email}) RETURN u LIMIT 1`,
       { email }
     );
 
